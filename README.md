@@ -118,11 +118,6 @@ src/
 
 ---
 
-## Screenshots
-
-> *(Images coming soon)*
-
----
 
 ## Design Philosophy
 
