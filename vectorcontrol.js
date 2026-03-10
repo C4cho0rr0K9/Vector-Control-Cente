@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 
+
 // ─── VECTOR FÍSICO — Programa real sincronizado con HTML ───────────────
 const VECTORS = [
   {
@@ -583,24 +584,23 @@ function PomodoroTimer() {
   const startRef                  = React.useRef(null);
   const snapRef                   = React.useRef(null);
 
-  // Load timer sessions from storage on mount
+  // Load timer sessions from localStorage on mount
   React.useEffect(() => {
-    async function loadSessions() {
-      try {
-        const r = await window.storage.get('battleos-timer');
-        if (r && r.value) {
-          const d = JSON.parse(r.value);
-          if (d.sessions) setSessions(d.sessions);
-        }
-      } catch(e) {}
-    }
-    loadSessions();
+    try {
+      const raw = localStorage.getItem('battleos-timer');
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (d.sessions) setSessions(d.sessions);
+      }
+    } catch(e) {}
   }, []);
 
   // Save sessions whenever they change
   React.useEffect(() => {
     if (!sessions.length) return;
-    window.storage.set('battleos-timer', JSON.stringify({ sessions })).catch(()=>{});
+    try {
+      localStorage.setItem('battleos-timer', JSON.stringify({ sessions }));
+    } catch(e) {}
   }, [sessions]);
 
   React.useEffect(() => {
@@ -989,33 +989,30 @@ export default function App() {
   const [calorieData, setCalorieData] = useState({});
   const [loaded, setLoaded]       = useState(false);
 
-  // ─── LOAD from storage on mount ───────────────────────────────────────
+  // ─── LOAD from localStorage on mount ────────────────────────────────
   React.useEffect(() => {
-    async function load() {
-      try {
-        const r = await window.storage.get('battleos-state');
-        if (r && r.value) {
-          const s = JSON.parse(r.value);
-          if (s.tab)          setTab(s.tab);
-          if (s.activeDay)    setActiveDay(s.activeDay);
-          if (s.completed)    setCompleted(s.completed);
-          if (s.kpiValues)    setKpiValues(s.kpiValues);
-          if (s.calorieData)  setCalorieData(s.calorieData);
-        }
-      } catch(e) { /* first time, no data yet */ }
-      setLoaded(true);
-    }
-    load();
+    try {
+      const raw = localStorage.getItem('battleos-state');
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s.tab)          setTab(s.tab);
+        if (s.activeDay)    setActiveDay(s.activeDay);
+        if (s.completed)    setCompleted(s.completed);
+        if (s.kpiValues)    setKpiValues(s.kpiValues);
+        if (s.calorieData)  setCalorieData(s.calorieData);
+      }
+    } catch(e) {}
+    setLoaded(true);
   }, []);
 
-  // ─── SAVE to storage on every change (debounced 600ms) ────────────────
+  // ─── SAVE to localStorage on every change (debounced 600ms) ──────────
   const saveTimer = React.useRef(null);
   React.useEffect(() => {
     if (!loaded) return;
     clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(async () => {
+    saveTimer.current = setTimeout(() => {
       try {
-        await window.storage.set('battleos-state', JSON.stringify({
+        localStorage.setItem('battleos-state', JSON.stringify({
           tab, activeDay, completed, kpiValues, calorieData
         }));
       } catch(e) {}
